@@ -1,8 +1,8 @@
 {
-  "name": "hossgen-ai",
+  "name": "hoss-gen",
   "version": "1.0.0",
+  "private": true,
   "type": "module",
-  "dependencies": {
-    "openai": "^4.0.0"
-  }
+  "scripts": { "dev": "vercel dev" },
+  "dependencies": { "openai": "^4.56.0" }
 }

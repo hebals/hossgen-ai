@@ -1,77 +1,35 @@
-// Client-side script to send form data to the AI comment generator
-// and display the result in the textarea.
-
 (function () {
-  'use strict';
+  const get = s => document.querySelector(s);
+  const out = get('.try-now-textarea');
+  const btn = get('.try-now-button');
 
-  // Select the generate button and output textarea on the try-now page
-  var generateBtn = document.querySelector('.try-now-button');
-  var outputArea = document.querySelector('.try-now-textarea');
-
-  /**
-   * Retrieve the value of an input or select element by CSS selector.
-   * For checkboxes, return the boolean checked state.
-   *
-   * @param {string} selector
-   * @returns {string|boolean}
-   */
-  function getValue(selector) {
-    var el = document.querySelector(selector);
+  function val(sel){
+    const el = get(sel);
     if (!el) return '';
-    if (el.type === 'checkbox') return el.checked;
-    return el.value ? el.value.trim() : '';
+    return el.type === 'checkbox' ? el.checked : (el.value || '').trim();
   }
 
-  /**
-   * Display generated text in the output textarea.
-   *
-   * @param {string} text
-   */
-  function setOutput(text) {
-    if (outputArea) {
-      outputArea.value = text;
-    }
-  }
-
-  /**
-   * Build a payload object from form inputs for the API call.
-   *
-   * @returns {{ name: string, level: string, strengths: string[], weaknesses: string[], advance: boolean }}
-   */
-  function buildPayload() {
-    return {
-      name: getValue('.student-first-name'),
-      level: getValue('.try-now-select'),
-      strengths: [getValue('.try-now-select1'), getValue('.try-now-select2')].filter(Boolean),
-      weaknesses: [getValue('.try-now-select3'), getValue('.try-now-select4')].filter(Boolean),
-      advance: getValue('.try-now-checkbox') === true
-    };
-  }
-
-  /**
-   * Send a POST request to the backend and update the textarea with the response.
-   *
-   * @param {Object} payload
-   */
-  async function generateComments(payload) {
-    setOutput('Generating…');
+  async function run() {
+    out.value = 'Generating…';
     try {
-      var res = await fetch('/api/generate', {
+      const payload = {
+        name: val('.student-first-name'),
+        level: val('.try-now-select'),
+        strengths: [val('.try-now-select1'), val('.try-now-select2')].filter(Boolean),
+        weaknesses: [val('.try-now-select3'), val('.try-now-select4')].filter(Boolean),
+        advance: val('.try-now-checkbox')
+      };
+      const res = await fetch('/api/generate', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {'Content-Type':'application/json'},
         body: JSON.stringify(payload)
       });
-      var data = await res.json();
-      setOutput(data.text || 'No comment returned');
-    } catch (err) {
-      setOutput('Error: ' + err.message);
+      const data = await res.json();
+      out.value = data.text || 'No comment returned';
+    } catch (e) {
+      out.value = 'Error: ' + (e.message || e);
     }
   }
 
-  if (generateBtn) {
-    generateBtn.addEventListener('click', function (e) {
-      e.preventDefault();
-      generateComments(buildPayload());
-    });
-  }
+  if (btn) btn.addEventListener('click', e => { e.preventDefault(); run(); });
 })();
